@@ -1,0 +1,81 @@
+{
+  "title": "TestPhi — Test Execution Dashboard",
+  "description": "Pre-built Grafana dashboard for TestPhi. Connect to your Supabase Postgres database with a read-only role.",
+  "panels": [
+    {
+      "title": "Pass Rate Trend (Last 30 Runs)",
+      "type": "timeseries",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT started_at AS time, ROUND((passed::float / NULLIF(total_cases, 0)) * 100, 1) AS pass_rate FROM test_runs ORDER BY started_at DESC LIMIT 30;",
+      "yAxis": { "label": "Pass Rate %", "max": 100, "min": 0 }
+    },
+    {
+      "title": "Tests Passed vs Failed (Last 30 Runs)",
+      "type": "barchart",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT started_at AS time, passed AS passed, failed AS failed, skipped AS skipped FROM test_runs ORDER BY started_at DESC LIMIT 30;"
+    },
+    {
+      "title": "Suite Execution Duration (Minutes)",
+      "type": "timeseries",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT started_at AS time, (duration_sec::float / 60) AS duration_min, suite_type FROM test_runs ORDER BY started_at DESC LIMIT 30;"
+    },
+    {
+      "title": "Flaky Tests (Score > 20%)",
+      "type": "table",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT title, flaky_score, test_type, category, last_run_status FROM test_cases WHERE flaky_score > 20 ORDER BY flaky_score DESC;"
+    },
+    {
+      "title": "Requirements Coverage",
+      "type": "gauge",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT ROUND(COUNT(CASE WHEN has_coverage THEN 1 END)::float / COUNT(*) * 100, 1) AS coverage_pct FROM requirements;",
+      "maxValue": 100,
+      "thresholds": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 60 }, { "color": "green", "value": 90 }]
+    },
+    {
+      "title": "Uncovered Requirements",
+      "type": "table",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT req_id, title, source, is_critical FROM requirements WHERE NOT has_coverage ORDER BY is_critical DESC, req_id;"
+    },
+    {
+      "title": "Defects by Severity",
+      "type": "piechart",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT severity, COUNT(*) AS count FROM defects WHERE status IN ('open', 'in_progress') GROUP BY severity ORDER BY severity;"
+    },
+    {
+      "title": "Defects by Status",
+      "type": "barchart",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT status, COUNT(*) AS count FROM defects GROUP BY status ORDER BY status;"
+    },
+    {
+      "title": "Validation Score Distribution",
+      "type": "histogram",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT validation_score FROM test_cases WHERE validation_score > 0;"
+    },
+    {
+      "title": "CI/CD Run History",
+      "type": "table",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT timestamp, commit_sha, commit_message, triggered_suite, pass_rate, github_status FROM cicd_runs ORDER BY timestamp DESC LIMIT 20;"
+    },
+    {
+      "title": "Tests per Suite",
+      "type": "barchart",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT s.name AS suite_name, COUNT(sm.test_case_id) AS test_count FROM test_suites s LEFT JOIN suite_memberships sm ON s.id = sm.suite_id GROUP BY s.name;"
+    },
+    {
+      "title": "Recent Test Runs",
+      "type": "table",
+      "datasource": "Supabase Postgres",
+      "query": "SELECT started_at, suite_name, suite_type, environment, status, total_cases, passed, failed, skipped, duration_sec FROM test_runs ORDER BY started_at DESC LIMIT 20;"
+    }
+  ]
+}

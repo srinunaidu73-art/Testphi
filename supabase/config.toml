@@ -1,0 +1,26 @@
+[functions.generate-tests]
+verify_jwt = false
+
+[functions.validate-tests]
+verify_jwt = false
+
+[functions.github-webhook]
+verify_jwt = false
+
+[functions.crawl-website]
+verify_jwt = false
+
+[functions.manage-settings]
+verify_jwt = false
+
+[functions.parse-requirements]
+verify_jwt = false
+
+[functions.heal-tests]
+verify_jwt = false
+
+[functions.run-tests]
+verify_jwt = false
+
+[functions.plan-tests]
+verify_jwt = false
